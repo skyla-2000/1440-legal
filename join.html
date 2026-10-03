@@ -34,7 +34,8 @@ document.getElementById('store').href=android?play:ios;
 document.getElementById('copy').onclick=function(){
   var b=this;(navigator.clipboard?navigator.clipboard.writeText(code):Promise.reject()).then(function(){b.textContent='복사했어요'},function(){b.textContent='코드를 길게 눌러 복사해 주세요'});
 };
-// Try the app once automatically (KakaoTalk's browser may ignore it — the buttons still work).
-if(code){setTimeout(function(){location.href=open},350);}
+// Android tries the app once automatically (falls back to Play). iOS waits for a tap:
+// Safari shows an "invalid address" alert for a custom link when the app isn't installed.
+if(code&&android){setTimeout(function(){location.href=open},350);}
 </script>
 </body></html>
