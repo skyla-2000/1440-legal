@@ -251,7 +251,11 @@
     const keep = []; let flat = '';
     for (let i = 0; i < text.length; i++) { if (/\s/.test(text[i])) continue; keep.push(i); flat += byIni ? ini(text[i]) : text[i].toLowerCase(); }
     const out = [];
-    for (let at = flat.indexOf(q); at >= 0; at = flat.indexOf(q, at + q.length)) out.push([keep[at], keep[at + q.length - 1] + 1]);
+    for (let at = flat.indexOf(q); at >= 0; at = flat.indexOf(q, at + 1)) {
+      if (byIni && keep[at] > 0 && !/[\s(‘'"·,./→@-]/.test(text[keep[at] - 1])) continue;
+      if (out.length && keep[at] < out[out.length - 1][1]) continue;
+      out.push([keep[at], keep[at + q.length - 1] + 1]);
+    }
     return out;
   }
   const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
