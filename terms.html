@@ -7,7 +7,10 @@
 <style>
   :root { color-scheme: light dark; --ink: #0a0a0a; --muted: #6e6e73; --bg: #fafafa; --line: #e5e5ea; }
   @media (prefers-color-scheme: dark) { :root { --ink: #f5f5f7; --muted: #98989d; --bg: #000; --line: #2c2c2e; } }
-  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.7 -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", sans-serif; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.7 -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", sans-serif; word-break: keep-all; overflow-wrap: anywhere; }
+  h1, h2, th, td { text-wrap: balance; }
+  p, li { text-wrap: pretty; }
+  ul { padding-left: 20px; }
   main { max-width: 680px; margin: 0 auto; padding: 48px 20px 80px; }
   h1 { font-size: 28px; margin: 0 0 4px; letter-spacing: -0.02em; }
   h2 { font-size: 18px; margin: 36px 0 8px; }
@@ -21,7 +24,7 @@
 <body>
 <main>
   <h1>1440 이용약관</h1>
-  <p class="muted">시행일: 2026년 10월 12일</p>
+  <p class="muted">시행일: 2026년 10월 5일</p>
 
   <p>이 약관은 1440(이하 "앱")을 쓰는 데 필요한 약속이에요. 앱을 쓰면 이 약관에 동의한 것으로 봐요.</p>
 
@@ -47,16 +50,23 @@
   <h2>3. 계정과 데이터</h2>
   <p>일정과 기록의 권리는 사용자에게 있어요. 계정은 본인만 써야 하고, 설정 → 계정 → 계정 삭제로 언제든 탈퇴할 수 있어요. 개인정보는 <a href="privacy.html">개인정보 처리방침</a>에 따라 다뤄요.</p>
 
-  <h2>4. 하지 말아야 할 것</h2>
-  <p>다른 사람의 계정을 쓰거나, 공유 캘린더로 스팸·불법 정보를 보내거나, 서비스를 방해하는 행동은 하면 안 돼요. 이런 경우 이용이 제한될 수 있어요.</p>
+  <h2>4. 약속 보내기</h2>
+  <ul>
+    <li>약속에 적는 제목·장소·시간과 누구에게 보낼지는 보내는 사람이 정하고, 그 내용에 대한 책임도 보내는 사람에게 있어요. 다른 사람의 개인정보는 그 사람이 괜찮다고 한 만큼만 적어 주세요.</li>
+    <li>링크를 가진 사람은 누구나 약속 내용을 볼 수 있어요. 링크는 보여 줄 사람에게만 보내 주세요.</li>
+    <li>원하지 않는 사람에게 반복해서 보내거나 광고에 쓰면 안 돼요. 스팸을 막기 위해 하루에 보내고 받을 수 있는 수에 제한이 있어요.</li>
+  </ul>
 
-  <h2>5. 책임의 범위</h2>
+  <h2>5. 하지 말아야 할 것</h2>
+  <p>다른 사람의 계정을 쓰거나, 공유 캘린더나 약속 보내기로 스팸·불법 정보를 보내거나, 서비스를 방해하는 행동은 하면 안 돼요. 이런 경우 이용이 제한될 수 있어요.</p>
+
+  <h2>6. 책임의 범위</h2>
   <p>알림, 출발 시각, 겹침 안내는 기기 설정과 입력한 정보로 계산한 참고용이에요. 중요한 일정은 직접 한 번 더 확인해 주세요. 천재지변이나 외부 서비스(Apple, Google, 노션, 슬랙 등)의 장애로 생긴 문제는 책임지기 어려워요. 다만 고의나 중대한 과실이 있으면 법령에 따라 책임져요.</p>
 
-  <h2>6. 약관 변경</h2>
+  <h2>7. 약관 변경</h2>
   <p>약관이 바뀌면 시행 7일 전(사용자에게 불리하면 30일 전)부터 앱과 이 페이지에서 알려 드려요.</p>
 
-  <h2>7. 사업자 정보와 문의</h2>
+  <h2>8. 사업자 정보와 문의</h2>
   <p>상호: 소르스튜디오 · 문의: aletion.lab@gmail.com</p>
   <p class="muted">이 약관은 대한민국 법을 따르고, 분쟁은 민사소송법에 따른 관할 법원에서 해결해요.</p>
 </main>

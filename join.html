@@ -130,7 +130,8 @@ function google(x){
   var dates;
   if(!x.time)dates=compact(x.date)+'/'+compact(nextDay(x.end_date&&x.end_date>x.date?x.end_date:x.date));
   else{
-    var end=x.end_time&&x.end_time!==x.time?{d:x.end_date&&x.end_date>x.date?x.end_date:x.end_time<x.time?nextDay(x.date):x.date,t:x.end_time}:null;
+    var days=!!x.end_date&&x.end_date>x.date;
+    var end=x.end_time&&x.end_time!==x.time?{d:days?x.end_date:x.end_time<x.time?nextDay(x.date):x.date,t:x.end_time}:days?{d:x.end_date,t:'23:59'}:null;
     if(!end){var m=+x.time.slice(0,2)*60+ +x.time.slice(3,5)+60;end={d:m>=1440?nextDay(x.date):x.date,t:('0'+Math.floor(m%1440/60)).slice(-2)+':'+('0'+m%60).slice(-2)}}
     dates=compact(x.date)+'T'+x.time.replace(':','')+'00/'+compact(end.d)+'T'+end.t.replace(':','')+'00';
   }
