@@ -82,22 +82,28 @@ var IOS='https://apps.apple.com/app/id6818588612', PLAY='https://play.google.com
 function appLink(path){return android?'intent://'+path+'#Intent;scheme=app1440;package=com.skyla2000.app1440;S.browser_fallback_url='+encodeURIComponent(PLAY)+';end':'app1440://'+path}
 function show(id){['cal','plan','state'].forEach(function(s){$(s).hidden=s!==id})}
 /**
- * The one button: Android's intent link opens the app or falls back to Play by itself. iPhone: the app's link,
- * and if the page is still showing 1.5s later (no app), the App Store. Either way the link is copied first
- * (the tap allows it), so 1440's first screen can offer to open it right after installing.
+ * The one button. The link itself is a universal link: on an iPhone with 1440, tapping it in Safari, Messages or
+ * Notes opens the app without ever showing this page. So a page that shows means:
+ * - Android: the intent link opens the app, or Play when it isn't there (the phone decides).
+ * - iPhone, in an app's own browser (카카오톡 and the like ignore universal links): try the app's link, and if the
+ *   page is still showing 1.5s later, the App Store.
+ * - iPhone in Safari or another browser (no app, or a link opened by hand): straight to the App Store, no warning.
+ *   If that guess is wrong, the App Store page has "열기" — either way it ends in the app or the store.
+ * The link is copied first (the tap allows it), so 1440's first screen can offer to open it after installing.
  */
+var inApp=ios&&(!/Safari\//.test(ua)||/KAKAOTALK|NAVER|Instagram|FBAN|FBAV|Line\/|DaumApps|everytimeApp|Whale\/|SamsungBrowser\/.*wv/i.test(ua));
 function opener(a,path){
-  a.href=appLink(path);
+  a.href=android?appLink(path):inApp?'app1440://'+path:IOS;
   a.onclick=function(ev){
     try{navigator.clipboard&&navigator.clipboard.writeText(location.href).catch(function(){})}catch(e){}
-    if(android)return;
+    if(!inApp)return;
     ev.preventDefault();
     var left=false,gone=function(){left=true};
     document.addEventListener('visibilitychange',function(){if(document.hidden)gone()},{once:true});
     window.addEventListener('pagehide',gone,{once:true});
     var store=function(){if(!left&&!document.hidden)location.href=IOS};
     location.href='app1440://'+path;
-    // Safari's own dialog ("열까요?" or "주소가 유효하지 않음") takes focus: decide once it's answered.
+    // A dialog ("열까요?" or "주소가 유효하지 않음") takes focus: decide once it's answered.
     setTimeout(function(){if(document.hasFocus())store();else window.addEventListener('focus',function(){setTimeout(store,300)},{once:true})},1500);
   };
 }
