@@ -1,41 +1,160 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>1440 공유 캘린더 초대</title>
-<meta property="og:title" content="1440 공유 캘린더 초대">
-<meta property="og:description" content="공유 캘린더에 초대받았어요. 눌러서 참여해 보세요.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src https://ilqtkymorstgbglgizwt.supabase.co; img-src data:; base-uri 'none'; form-action 'none'">
+<title>1440 캘린더</title>
+<meta property="og:title" content="1440 캘린더">
+<meta property="og:description" content="눌러서 1440에서 열어 보세요.">
 <style>
-:root{color-scheme:light dark}body{margin:0;min-height:100vh;display:grid;place-items:center;font:16px/1.6 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;background:#fafafa;color:#0a0a0a}
-@media (prefers-color-scheme:dark){body{background:#000;color:#f5f5f7}.btn{background:#f5f5f7!important;color:#000!important}.ghost,.code{background:#1c1c1e!important;color:#f5f5f7!important}}
-main{text-align:center;padding:24px;max-width:380px}h1{font-size:26px;margin:0 0 8px}p{color:#8e8e93;margin:6px 0}
-.btn,.ghost{display:block;margin:12px 0;padding:15px;border-radius:999px;text-decoration:none;font-weight:600;border:0;width:100%;font-size:16px;cursor:pointer}
-.btn{background:#0a0a0a;color:#fff;margin-top:24px}.ghost{background:#ececec;color:#0a0a0a}
-.code{font:600 22px ui-monospace,Menlo,monospace;letter-spacing:3px;background:#fff;border-radius:14px;padding:14px;margin-top:20px}
+:root{color-scheme:light dark;--bg:#f2f2f7;--card:#fff;--fg:#000;--muted:#8e8e93;--soft:#e5e5ea;--accent:#007aff}
+@media (prefers-color-scheme:dark){:root{--bg:#000;--card:#1c1c1e;--fg:#fff;--soft:#2c2c2e;--accent:#0a84ff}}
+body{margin:0;min-height:100vh;display:grid;place-items:center;font:16px/1.6 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard",sans-serif;background:var(--bg);color:var(--fg)}
+main{text-align:center;padding:24px;width:100%;max-width:380px;box-sizing:border-box}
+h1{font-size:26px;line-height:1.3;margin:0 0 8px;word-break:keep-all;overflow-wrap:anywhere}p{color:var(--muted);margin:6px 0;word-break:keep-all}
+[hidden]{display:none!important}
+.eyebrow{font-size:14px;margin-bottom:6px}
+.card{background:var(--card);border-radius:16px;padding:4px 16px;margin-top:20px;text-align:left}
+.line{padding:12px 0;border-top:1px solid var(--soft);overflow-wrap:anywhere}.line:first-child{border-top:0}
+.line.more{border-top:0;padding-top:0}
+.line b{display:block;font-size:13px;font-weight:400;color:var(--muted)}
+.btn,.ghost{display:block;box-sizing:border-box;margin:12px 0;padding:15px;border-radius:999px;text-decoration:none;font-weight:600;border:0;width:100%;font-size:16px;cursor:pointer;font-family:inherit}
+.btn{background:var(--fg);color:var(--bg);margin-top:24px}.ghost{background:var(--soft);color:var(--fg)}
+.code{font:600 22px ui-monospace,Menlo,monospace;letter-spacing:3px;background:var(--card);border-radius:14px;padding:14px;margin-top:20px}
 .step{font-size:14px;margin-top:20px}
 </style></head>
 <body><main>
-<h1>공유 캘린더 초대</h1>
-<p>1440 앱에서 열면 바로 참여할 수 있어요.</p>
-<a class="btn" id="open" href="#">1440에서 열기</a>
-<a class="ghost" id="store" href="#">앱 설치하기</a>
+
+<!-- 공유 캘린더 초대 (?code=) — and the plain "1440 받기" link (no code). -->
+<section id="cal" hidden>
+<h1 id="calTitle">공유 캘린더 초대</h1>
+<p id="calLead">1440 앱에서 열면 바로 참여할 수 있어요.</p>
+<a class="btn" id="calOpen" href="#">1440에서 열기</a>
+<a class="ghost store" href="#">앱 설치하기</a>
+<div id="calCodeBox">
 <p class="step">설치한 뒤 이 페이지에서 <b>1440에서 열기</b>를 다시 누르거나,<br>앱의 <b>더 보기 → 공유 캘린더</b>에서 아래 코드를 입력해 주세요.</p>
 <div class="code" id="code">-</div>
 <button class="ghost" id="copy">코드 복사</button>
+</div>
+</section>
+
+<!-- 약속 (?p=): a plan sent by link. Everything from the server goes in with textContent. -->
+<section id="plan" hidden>
+<p class="eyebrow" id="from"></p>
+<h1 id="title"></h1>
+<div class="card" id="facts"></div>
+<a class="btn" id="planOpen" href="#">1440에서 답하기</a>
+<a class="ghost" id="addCal" href="#" hidden>캘린더에 추가</a>
+<a class="ghost store" id="planStore" href="#">앱 설치하기</a>
+<p class="step" id="planStep"></p>
+</section>
+
+<!-- 불러오는 중 · 기한 지남 · 취소됨 · 잘못된 링크 · 연결 안 됨 -->
+<section id="state" hidden>
+<h1 id="stateTitle">약속을 불러오는 중이에요</h1>
+<p id="stateLead"></p>
+<button class="btn" id="retry" hidden>다시 시도</button>
+<a class="ghost store" id="stateStore" href="#" hidden>1440 받기</a>
+</section>
+
 </main>
 <script>
-var code=(new URLSearchParams(location.search).get('code')||'').replace(/[^A-Za-z0-9]/g,'').toUpperCase().slice(0,20);
-document.getElementById('code').textContent=code||'-';
-var ua=navigator.userAgent, android=/Android/i.test(ua);
-var ios='https://apps.apple.com/app/id6818588612', play='https://play.google.com/store/apps/details?id=com.skyla2000.app1440';
-var app='app1440://join/'+code;
+(function(){
+var API='https://ilqtkymorstgbglgizwt.supabase.co', KEY='sb_publishable_6xtP74Jsk7pczy73hjwF5g_PXhl2LMZ';
+var $=function(id){return document.getElementById(id)};
+var q=new URLSearchParams(location.search);
+var ua=navigator.userAgent, android=/Android/i.test(ua), ios=/iPhone|iPad|iPod/i.test(ua)||(/Macintosh/.test(ua)&&'ontouchend' in document);
+var IOS='https://apps.apple.com/app/id6818588612', PLAY='https://play.google.com/store/apps/details?id=com.skyla2000.app1440';
+[].forEach.call(document.querySelectorAll('.store'),function(a){a.href=android?PLAY:IOS});
 // Android: an intent link opens the app, or Play when it isn't installed (no "invalid address" error).
-var open=android ? 'intent://join/'+code+'#Intent;scheme=app1440;package=com.skyla2000.app1440;S.browser_fallback_url='+encodeURIComponent(play)+';end' : app;
-document.getElementById('open').href=open;
-document.getElementById('store').href=android?play:ios;
-document.getElementById('copy').onclick=function(){
+function appLink(path){return android?'intent://'+path+'#Intent;scheme=app1440;package=com.skyla2000.app1440;S.browser_fallback_url='+encodeURIComponent(PLAY)+';end':'app1440://'+path}
+function show(id){['cal','plan','state'].forEach(function(s){$(s).hidden=s!==id})}
+
+// ---- 약속 ----------------------------------------------------------------------------------------
+var p=(q.get('p')||'').replace(/[^A-Za-z0-9]/g,'').toUpperCase();
+var WEEK='일월화수목금토';
+function day(s){var d=new Date(s+'T00:00:00Z');return (d.getUTCMonth()+1)+'월 '+d.getUTCDate()+'일 ('+WEEK[d.getUTCDay()]+')'}
+function spoken(t){var h=+t.slice(0,2),m=+t.slice(3,5);return (h<6?'새벽':h<12?'오전':h<18?'오후':'저녁')+' '+(h%12||12)+'시'+(m?' '+m+'분':'')}
+function when(s){
+  if(s.end_date&&s.end_date>s.date)return day(s.date)+(s.time?' '+spoken(s.time):'')+' – '+day(s.end_date)+(s.time&&s.end_time?' '+spoken(s.end_time):'');
+  return day(s.date)+' '+(s.time?spoken(s.time)+(s.end_time&&s.end_time!==s.time?' – '+spoken(s.end_time):''):'하루 종일');
+}
+function line(label,value){
+  var d=document.createElement('div');d.className='line'+(label?'':' more');
+  if(label){var b=document.createElement('b');b.textContent=label;d.appendChild(b)}
+  d.appendChild(document.createTextNode(value));$('facts').appendChild(d);
+}
+function compact(s){return s.replace(/-/g,'')}
+function nextDay(s){var d=new Date(s+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+1);return d.toISOString().slice(0,10)}
+function google(x){
+  var dates;
+  if(!x.time)dates=compact(x.date)+'/'+compact(nextDay(x.end_date&&x.end_date>x.date?x.end_date:x.date));
+  else{
+    var end=x.end_time&&x.end_time!==x.time?{d:x.end_date&&x.end_date>x.date?x.end_date:x.end_time<x.time?nextDay(x.date):x.date,t:x.end_time}:null;
+    if(!end){var m=+x.time.slice(0,2)*60+ +x.time.slice(3,5)+60;end={d:m>=1440?nextDay(x.date):x.date,t:('0'+Math.floor(m%1440/60)).slice(-2)+':'+('0'+m%60).slice(-2)}}
+    dates=compact(x.date)+'T'+x.time.replace(':','')+'00/'+compact(end.d)+'T'+end.t.replace(':','')+'00';
+  }
+  return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(x.title||'약속')+'&dates='+dates+(x.time?'&ctz=Asia/Seoul':'')+(x.place?'&location='+encodeURIComponent(x.place):'')+'&details='+encodeURIComponent('1440에서 답하기: '+location.origin+location.pathname+'?p='+p);
+}
+function gone(t,lead){
+  show('state');document.title='1440 캘린더';
+  $('stateTitle').textContent=t;$('stateLead').textContent=lead;$('retry').hidden=true;$('stateStore').hidden=false;
+}
+function load(){
+  show('state');$('stateTitle').textContent='약속을 불러오는 중이에요';$('stateLead').textContent='';$('retry').hidden=true;$('stateStore').hidden=true;
+  fetch(API+'/rest/v1/rpc/peek_plan_invite',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({invite_code:p})})
+    .then(function(r){if(!r.ok)throw 0;return r.json()})
+    .then(function(rows){var x=rows&&rows[0];if(!x)return gone('기한이 지난 약속이에요','약속 날짜가 지나서 이 링크는 더 열 수 없어요. 보낸 사람에게 다시 받아 주세요.');render(x)})
+    .catch(function(){show('state');$('stateTitle').textContent='약속을 불러오지 못했어요';$('stateLead').textContent='인터넷 연결을 확인하고 다시 시도해 주세요.';$('retry').hidden=false});
+}
+function render(x){
+  if(x.cancelled)return gone('취소된 약속이에요',(x.sender_name||'보낸 사람')+'님이 이 약속을 취소했어요.');
+  show('plan');
+  var pick=x.kind==='pick'||!x.date;
+  document.title=(x.title||'약속')+' · 1440';
+  $('from').textContent=(x.sender_name||'1440 사용자')+'님이 보낸 약속';
+  $('title').textContent=x.title||'약속';
+  $('facts').textContent='';
+  if(pick)(x.options||[]).forEach(function(o,i){line(i===0?'언제 괜찮아요?':'',(i+1)+') '+when({date:o.date,time:o.time,end_time:o.end_time}))});
+  else line('언제',when(x));
+  if(x.place)line('장소',x.place);
+  if(!pick&&+x.going>0)line('참석',x.going+'명');
+  $('planOpen').textContent=pick?'1440에서 고르기':'1440에서 답하기';
+  $('planOpen').href=appLink('p/'+p);
+  if(!pick){
+    // iPhone: the .ics opens "캘린더에 추가" right in Safari. Elsewhere: Google Calendar's add page.
+    var a=$('addCal');a.hidden=false;
+    if(ios){a.textContent='캘린더에 추가';a.href=API+'/functions/v1/plan-ics?p='+p}
+    else{a.textContent='구글 캘린더에 추가';a.href=google(x);a.target='_blank';a.rel='noopener noreferrer'}
+  }
+  $('planStep').textContent=pick?'앱이 없어도 괜찮아요. 받은 메시지에 번호로 답장해 주세요.':'앱이 없으면 설치한 뒤 이 링크를 다시 열어 주세요.';
+  // iPhone without the app: the link goes on the clipboard, so 1440's first screen can offer to open it.
+  if(ios)$('planStore').onclick=function(){try{navigator.clipboard&&navigator.clipboard.writeText(location.href)}catch(e){}};
+}
+$('retry').onclick=load;
+if(q.has('p')){
+  if(!/^[A-HJKMNP-Z2-9]{16}$/.test(p))return gone('링크가 올바르지 않아요','받은 메시지의 링크를 다시 눌러 주세요.');
+  return load();
+}
+
+// ---- 공유 캘린더 초대 / 1440 받기 ------------------------------------------------------------------
+var code=(q.get('code')||'').replace(/[^A-Za-z0-9]/g,'').toUpperCase().slice(0,20);
+show('cal');
+if(!code){
+  $('calTitle').textContent='1440 캘린더';
+  $('calLead').textContent='할 일과 약속을 한곳에서 챙겨요.';
+  $('calOpen').hidden=true;$('calCodeBox').hidden=true;
+  return;
+}
+document.title='1440 공유 캘린더 초대';
+$('code').textContent=code;
+$('calOpen').href=appLink('join/'+code);
+$('copy').onclick=function(){
   var b=this;(navigator.clipboard?navigator.clipboard.writeText(code):Promise.reject()).then(function(){b.textContent='복사했어요'},function(){b.textContent='코드를 길게 눌러 복사해 주세요'});
 };
 // Android tries the app once automatically (falls back to Play). iOS waits for a tap:
 // Safari shows an "invalid address" alert for a custom link when the app isn't installed.
-if(code&&android){setTimeout(function(){location.href=open},350);}
+if(android)setTimeout(function(){location.href=$('calOpen').href},350);
+})();
 </script>
 </body></html>
