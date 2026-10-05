@@ -25,6 +25,9 @@ h1{font-size:26px;line-height:1.3;margin:0 0 8px}p{color:var(--muted);margin:6px
 .btn{background:var(--fg);color:var(--bg);margin-top:24px}.ghost{background:var(--soft);color:var(--fg)}
 .code{font:600 22px ui-monospace,Menlo,monospace;letter-spacing:3px;background:var(--card);border-radius:14px;padding:14px;margin-top:20px}
 .step{font-size:14px;margin-top:20px}
+.links{display:flex;justify-content:center;flex-wrap:wrap;gap:4px 18px;margin-top:4px}
+.small{color:var(--accent);text-decoration:none;font-size:15px;padding:8px 0}
+.tiny{font-size:12px;margin-top:14px}
 </style></head>
 <body><main>
 
@@ -33,9 +36,11 @@ h1{font-size:26px;line-height:1.3;margin:0 0 8px}p{color:var(--muted);margin:6px
 <h1 id="calTitle">공유 캘린더 초대</h1>
 <p id="calLead">1440 앱에서 열면 바로 참여할 수 있어요.</p>
 <a class="btn" id="calOpen" href="#">1440에서 열기</a>
-<a class="ghost store" href="#">앱 설치하기</a>
+<p class="tiny" id="calNote">앱이 없으면 설치 화면으로 가요.
+설치 후 이 링크를 다시 누르면 바로 열려요.</p>
 <div id="calCodeBox">
-<p class="step">설치한 뒤 이 페이지에서 <b>1440에서 열기</b>를 다시 누르거나,<br>앱의 <b>더 보기 → 공유 캘린더</b>에서 아래 코드를 입력해 주세요.</p>
+<p class="step">또는 앱의 <b>더 보기 → 공유 캘린더</b>에서
+아래 코드를 입력해 주세요.</p>
 <div class="code" id="code">-</div>
 <button class="ghost" id="copy">코드 복사</button>
 </div>
@@ -46,10 +51,14 @@ h1{font-size:26px;line-height:1.3;margin:0 0 8px}p{color:var(--muted);margin:6px
 <p class="eyebrow" id="from"></p>
 <h1 id="title"></h1>
 <div class="card" id="facts"></div>
-<a class="btn" id="planOpen" href="#">1440에서 답하기</a>
-<a class="ghost" id="addCal" href="#" hidden>캘린더에 추가</a>
-<a class="ghost store" id="planStore" href="#">앱 설치하기</a>
-<p class="step" id="planStep"></p>
+<!-- One button: the app when it's there, the store when it isn't. -->
+<a class="btn" id="planOpen" href="#">1440에서 확인하기</a>
+<!-- For people who won't install it: the plan straight into their own calendar. -->
+<div class="links" id="addCal" hidden>
+<a class="small" id="addGoogle" href="#" target="_blank" rel="noopener noreferrer">구글 캘린더에 추가</a>
+<a class="small" id="addIcs" href="#">아이폰 캘린더에 추가</a>
+</div>
+<p class="tiny" id="planStep"></p>
 </section>
 
 <!-- 불러오는 중 · 기한 지남 · 취소됨 · 잘못된 링크 · 연결 안 됨 -->
@@ -72,6 +81,26 @@ var IOS='https://apps.apple.com/app/id6818588612', PLAY='https://play.google.com
 // Android: an intent link opens the app, or Play when it isn't installed (no "invalid address" error).
 function appLink(path){return android?'intent://'+path+'#Intent;scheme=app1440;package=com.skyla2000.app1440;S.browser_fallback_url='+encodeURIComponent(PLAY)+';end':'app1440://'+path}
 function show(id){['cal','plan','state'].forEach(function(s){$(s).hidden=s!==id})}
+/**
+ * The one button: Android's intent link opens the app or falls back to Play by itself. iPhone: the app's link,
+ * and if the page is still showing 1.5s later (no app), the App Store. Either way the link is copied first
+ * (the tap allows it), so 1440's first screen can offer to open it right after installing.
+ */
+function opener(a,path){
+  a.href=appLink(path);
+  a.onclick=function(ev){
+    try{navigator.clipboard&&navigator.clipboard.writeText(location.href).catch(function(){})}catch(e){}
+    if(android)return;
+    ev.preventDefault();
+    var left=false,gone=function(){left=true};
+    document.addEventListener('visibilitychange',function(){if(document.hidden)gone()},{once:true});
+    window.addEventListener('pagehide',gone,{once:true});
+    var store=function(){if(!left&&!document.hidden)location.href=IOS};
+    location.href='app1440://'+path;
+    // Safari's own dialog ("열까요?" or "주소가 유효하지 않음") takes focus: decide once it's answered.
+    setTimeout(function(){if(document.hasFocus())store();else window.addEventListener('focus',function(){setTimeout(store,300)},{once:true})},1500);
+  };
+}
 
 // ---- 약속 ----------------------------------------------------------------------------------------
 var p=(q.get('p')||'').replace(/[^A-Za-z0-9]/g,'').toUpperCase();
@@ -124,17 +153,13 @@ function render(x){
   else line('언제',when(x));
   if(x.place)line('장소',x.place);
   if(!pick&&+x.going>0)line('참석',x.going+'명');
-  $('planOpen').textContent=pick?'1440에서 고르기':'1440에서 답하기';
-  $('planOpen').href=appLink('p/'+p);
+  opener($('planOpen'),'p/'+p);
   if(!pick){
-    // iPhone: the .ics opens "캘린더에 추가" right in Safari. Elsewhere: Google Calendar's add page.
-    var a=$('addCal');a.hidden=false;
-    if(ios){a.textContent='캘린더에 추가';a.href=API+'/functions/v1/plan-ics?p='+p}
-    else{a.textContent='구글 캘린더에 추가';a.href=google(x);a.target='_blank';a.rel='noopener noreferrer'}
+    $('addCal').hidden=false;
+    $('addGoogle').href=google(x);
+    $('addIcs').href=API+'/functions/v1/plan-ics?p='+p;
   }
-  $('planStep').textContent=pick?'앱이 없어도 괜찮아요.\n받은 메시지에 번호로 답장해 주세요.':'앱이 없으면 설치한 뒤\n이 링크를 다시 열어 주세요.';
-  // iPhone without the app: the link goes on the clipboard, so 1440's first screen can offer to open it.
-  if(ios)$('planStore').onclick=function(){try{navigator.clipboard&&navigator.clipboard.writeText(location.href)}catch(e){}};
+  $('planStep').textContent=(pick?'앱 없이 번호로 답장해도 돼요.\n':'')+'설치 후 이 링크를 다시 누르면 바로 열려요.';
 }
 $('retry').onclick=load;
 if(q.has('p')){
@@ -148,12 +173,13 @@ show('cal');
 if(!code){
   $('calTitle').textContent='1440 캘린더';
   $('calLead').textContent='할 일과 약속을 한곳에서 챙겨요.';
-  $('calOpen').hidden=true;$('calCodeBox').hidden=true;
+  $('calOpen').hidden=true;$('calNote').hidden=true;$('calCodeBox').hidden=true;
+  var get=document.createElement('a');get.className='btn';get.textContent='1440 받기';get.href=android?PLAY:IOS;$('cal').appendChild(get);
   return;
 }
 document.title='1440 공유 캘린더 초대';
 $('code').textContent=code;
-$('calOpen').href=appLink('join/'+code);
+opener($('calOpen'),'join/'+code);
 $('copy').onclick=function(){
   var b=this;(navigator.clipboard?navigator.clipboard.writeText(code):Promise.reject()).then(function(){b.textContent='복사했어요'},function(){b.textContent='코드를 길게 눌러 복사해 주세요'});
 };
